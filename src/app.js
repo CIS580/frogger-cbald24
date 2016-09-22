@@ -8,6 +8,8 @@ const Player = require('./player.js');
 var canvas = document.getElementById('screen');
 var game = new Game(canvas, update, render);
 var player = new Player({x: 0, y: 240})
+var background = new Image();
+background.src = "assets/Background.png"; 
 
 /**
  * @function masterLoop
@@ -42,7 +44,8 @@ function update(elapsedTime) {
   * @param {CanvasRenderingContext2D} ctx the context to render to
   */
 function render(elapsedTime, ctx) {
-  ctx.fillStyle = "lightblue";
+  ctx.drawImage(background,0,0);
+  //ctx.fillStyle = "lightblue";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   player.render(elapsedTime, ctx);
 }
