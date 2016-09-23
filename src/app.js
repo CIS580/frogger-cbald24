@@ -6,7 +6,6 @@ const Player = require('./player.js');
 const FastCar = require('./fastCar.js');
 const MiniCoop = require('./miniCoop.js');
 const Lilypad = require('./lilypad.js');
-const EntityManager = require('./entity-manager.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
@@ -25,14 +24,8 @@ var lilyMS = 1;
 var lives = 3;
 var level = 1;
 var score = 0;
-var gameOver = false;
 var onLily = false;
-var entities = new EntityManager(canvas.width,canvas.height,64);
-entities.addEntity(player);
-entities.addEntity(miniUp);
-entities.addEntity(miniDown);
-entities.addEntity(carUp);
-entities.addEntity(carDown);
+
 //var lilypadT = new Lilypad({x: 800, y: 100}, false);
 for (var i = 0; i < 5; i++)
 {
@@ -40,9 +33,6 @@ for (var i = 0; i < 5; i++)
   lilypads.push(new Lilypad({x: 64*14, y: (i*150) - 50}, true));
   lilypads.push(new Lilypad({x: 64*15, y: (i*150) + 50}, false));
 }
-lilypads.forEach(function(lily){
-  entities.addEntity(lily);
-})
 /**
  * @function masterLoop
  * Advances the game in sync with the refresh rate of the screen
@@ -71,26 +61,48 @@ function update(elapsedTime) {
     lilyMS++;
     carMoveSpeed++;
     miniMoveSpeed++;   
-	}
-
-   
-  
+	} 
   player.update(elapsedTime, onLily);
-  entities.updateEntity(player);
   carDown.update(carMoveSpeed);
-  entities.updateEntity(carDown);
   miniDown.update(miniMoveSpeed);
-  entities.updateEntity(miniDown);
   carUp.update(carMoveSpeed);
-  entities.updateEntity(carUp);
   miniUp.update(miniMoveSpeed);
-  entities.updateEntity(miniUp);
   lilypads.forEach(function(lily){
     lily.update(lilyMS);
-    entities.updateEntity(lily);
   });
-  
-		
+  if (checkCollision(player, miniUp) || checkCollision(player, miniDown) || checkCollision(player, carUp) || checkCollision(player, carDown))
+  {
+    player.state = "idle";
+    player.hopping = false;
+    lives -= 1;
+    player.x = 0;
+    player.y = 240;
+    
+  }
+	lilypads.forEach(function(lily){
+    if (checkCollision(player, lily))
+    {
+      player.lily = true
+      if(player.state == "idle")
+      {
+        player.x = lily.x;
+        player.y = lily.y;
+      }
+    }
+  });
+  if (player.x > (64 * 13 + 3) && player.x < (64*16 - 3) && player.lily == false && player.state == "idle")
+  {
+    player.state = "idle";
+    player.hopping = false;
+    lives -= 1;
+    player.x = 0;
+    player.y = 240;
+
+  }
+  if (lives <= 0)
+  {
+    player.state = "dead";
+  }
   // TODO: Update the game objects
 }
 
@@ -103,22 +115,44 @@ function update(elapsedTime) {
   */
 function render(elapsedTime, ctx) {
   ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText("SCORE: " +score, 7, canvas.height - 20);
-  ctx.fillText("LEVEL: " +level, 7, canvas.height - 40);
-	ctx.fillText("LIVES: " +lives, 7, canvas.height -60);
-
-  
-  player.render(elapsedTime, ctx);
-  carUp.render(ctx);
-  miniUp.render(ctx);
-  miniDown.render(ctx);
-  carDown.render(ctx);
-  var temp
-  var tempLilys = [];
-  lilypads.forEach(function(lily) {
+  if(player.state == "dead")
+  {
+    ctx.font = "100px Arial";
+    ctx.fillText("GAME OVER", canvas.width/2 - 300, canvas.height/2);
+    ctx.font = "25px Arial";
+    ctx.fillText("Final Score: " +score, canvas.width / 2 - 50, canvas.height/2 + 35);
+  }
+  else
+  {
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("SCORE: " +score, 7, canvas.height - 20);
+    ctx.fillText("LEVEL: " +level, 7, canvas.height - 40);
+	  ctx.fillText("LIVES: " +lives, 7, canvas.height -60);
+    /*for (var i = 0; i < canvas.width; i+=16)
+    {
+      ctx.fillRect(i, 0, 2, canvas.height);
+    } */
+    carUp.render(ctx);
+    miniUp.render(ctx);
+    miniDown.render(ctx);
+    carDown.render(ctx);
+    var temp
+    var tempLilys = [];
+    lilypads.forEach(function(lily) {
     lily.render(ctx);
   }); 
+  player.render(elapsedTime, ctx);
+  }
+  
+}
+
+function checkCollision(thing1, thing2)
+{
+  if(thing1.x + thing1.width - 1 < thing2.x || thing1.x + 1 > thing2.x + thing2.width || thing1.y + thing1.height - 1 < thing2.y || thing1.y + 1 > thing2.y + thing2.height)
+  {
+    return false;
+  }
+  return true;
 }
 

@@ -34,8 +34,8 @@ function Player(position) {
  * @function updates the player object
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
-Player.prototype.update = function(time, onLily) {
-  this.lily = onLily
+Player.prototype.update = function(time) {
+  this.lily = false;
   switch(this.state) {
     case "idle":
       this.timer += time;
