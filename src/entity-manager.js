@@ -52,31 +52,35 @@ EntityManager.prototype.collide = function(callback) {
     // test for collisions
     cell.forEach(function(entity1) {
       // check for collisions with cellmates
-      cell.forEach(function(entity2) {
-        if(entity1 != entity2) checkForCollision(entity1, entity2, callback);
-
-        // check for collisions in cell to the right
-        if(i % (self.widthInCells - 1) != 0) {
-          self.cells[i+1].forEach(function(entity2) {
-            checkForCollision(entity1, entity2, callback);
-          });
-        }
-
-        // check for collisions in cell below
-        if(i < self.numberOfCells - self.widthInCells) {
-          self.cells[i+self.widthInCells].forEach(function(entity2){
-            checkForCollision(entity1, entity2, callback);
-          });
-        }
-
-        // check for collisions diagionally below and right
-        if(i < self.numberOfCells - self.withInCells && i % (self.widthInCells - 1) != 0) {
-          self.cells[i+self.widthInCells + 1].forEach(function(entity2){
-            checkForCollision(entity1, entity2, callback);
-          });
-        }
-      });
-    });
+        cell.forEach(function(entity2) {
+            if(entity1 != entity2) checkForCollision(entity1, entity2, callback);
+            // check for collisions in cell to the right
+            if(i % (self.widthInCells - 1) != 0) 
+            {
+                self.cells[i+1].forEach(function(entity2) 
+                {
+                    checkForCollision(entity1, entity2, callback);
+         	    });
+            }
+            // check for collisions in cell below
+            if(i < self.numberOfCells - self.widthInCells)
+            {
+                self.cells[i+self.widthInCells].forEach(function(entity2)
+                {
+                    checkForCollision(entity1, entity2, callback);
+                });
+            }
+            // check for collisions diagionally below and right
+            if(i < self.numberOfCells - self.withInCells && i % (self.widthInCells - 1) != 0) 
+            {
+                self.cells[i+self.widthInCells + 1].forEach(function(entity2)
+                {
+                    checkForCollision(entity1, entity2, callback);
+         	    });
+            }
+            });
+           
+      });   
   });
 }
 

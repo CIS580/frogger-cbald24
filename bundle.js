@@ -6,6 +6,8 @@ const Game = require('./game.js');
 const Player = require('./player.js');
 const FastCar = require('./fastCar.js');
 const MiniCoop = require('./miniCoop.js');
+const Lilypad = require('./lilypad.js');
+const EntityManager = require('./entity-manager.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
@@ -14,11 +16,34 @@ var player = new Player({x: 0, y: 240})
 var background = new Image();
 background.src = "assets/Background.png"; 
 var carDown = new FastCar({x: (64 * 5) + 40, y: canvas.height}, true);
-var miniUp = new MiniCoop({x: (64 * 9)-4, y: canvas.height}, false);
+var miniUp = new MiniCoop({x: (64 * 9)+4, y: canvas.height}, false);
 var carUp = new FastCar({x: (64 * 10) + 40, y: canvas.height}, false);
-var  miniDown = new MiniCoop({x: (64 * 4)+4, y: canvas.height}, true);
+var miniDown = new MiniCoop({x: (64 * 4)+4, y: canvas.height}, true);
 var miniMoveSpeed = 2;
 var carMoveSpeed = 3;
+var lilypads = []; 
+var lilyMS = 1;
+var lives = 3;
+var level = 1;
+var score = 0;
+var gameOver = false;
+var onLily = false;
+var entities = new EntityManager(canvas.width,canvas.height,64);
+entities.addEntity(player);
+entities.addEntity(miniUp);
+entities.addEntity(miniDown);
+entities.addEntity(carUp);
+entities.addEntity(carDown);
+//var lilypadT = new Lilypad({x: 800, y: 100}, false);
+for (var i = 0; i < 5; i++)
+{
+  lilypads.push(new Lilypad({x: 64*13, y: (i*150) + 50}, false));
+  lilypads.push(new Lilypad({x: 64*14, y: (i*150) - 50}, true));
+  lilypads.push(new Lilypad({x: 64*15, y: (i*150) + 50}, false));
+}
+lilypads.forEach(function(lily){
+  entities.addEntity(lily);
+})
 /**
  * @function masterLoop
  * Advances the game in sync with the refresh rate of the screen
@@ -40,11 +65,33 @@ masterLoop(performance.now());
  * the number of milliseconds passed since the last frame.
  */
 function update(elapsedTime) {
-  player.update(elapsedTime);
+  if(player.x>1200){
+    score += (level * 10);
+		level+=1;
+		player.x=0;
+    lilyMS++;
+    carMoveSpeed++;
+    miniMoveSpeed++;   
+	}
+
+   
+  
+  player.update(elapsedTime, onLily);
+  entities.updateEntity(player);
   carDown.update(carMoveSpeed);
+  entities.updateEntity(carDown);
   miniDown.update(miniMoveSpeed);
+  entities.updateEntity(miniDown);
   carUp.update(carMoveSpeed);
+  entities.updateEntity(carUp);
   miniUp.update(miniMoveSpeed);
+  entities.updateEntity(miniUp);
+  lilypads.forEach(function(lily){
+    lily.update(lilyMS);
+    entities.updateEntity(lily);
+  });
+  
+		
   // TODO: Update the game objects
 }
 
@@ -56,8 +103,12 @@ function update(elapsedTime) {
   * @param {CanvasRenderingContext2D} ctx the context to render to
   */
 function render(elapsedTime, ctx) {
-  ctx.fillStyle = "black";
   ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("SCORE: " +score, 7, canvas.height - 20);
+  ctx.fillText("LEVEL: " +level, 7, canvas.height - 40);
+	ctx.fillText("LIVES: " +lives, 7, canvas.height -60);
   for (var i = 0; i < canvas.width; i+=16)
   {
     ctx.fillRect(i, 0, 2, canvas.height);
@@ -68,9 +119,120 @@ function render(elapsedTime, ctx) {
   miniUp.render(ctx);
   miniDown.render(ctx);
   carDown.render(ctx);
+  var temp
+  var tempLilys = [];
+  lilypads.forEach(function(lily) {
+    lily.render(ctx);
+  }); 
 }
 
-},{"./fastCar.js":2,"./game.js":3,"./miniCoop.js":4,"./player.js":5}],2:[function(require,module,exports){
+
+},{"./entity-manager.js":2,"./fastCar.js":3,"./game.js":4,"./lilypad.js":5,"./miniCoop.js":6,"./player.js":7}],2:[function(require,module,exports){
+module.exports = exports = EntityManager;
+
+function EntityManager(width, height, cellSize) {
+  this.cellSize = cellSize;
+  this.widthInCells = Math.ceil(width / cellSize);
+  this.heightInCells = Math.ceil(height / cellSize);
+  this.cells = [];
+  this.numberOfCells = this.widthInCells * this.heightInCells;
+  for(var i = 0; i < this.numberOfCells; i++) {
+    this.cells[i] = [];
+  }
+  this.cells[-1] = [];
+}
+
+function getIndex(x, y) {
+  var x = Math.floor(x / this.cellSize);
+  var y = Math.floor(y / this.cellSize);
+  if(x < 0 ||
+     x >= this.widthInCells ||
+     y < 0 ||
+     y >= this.heightInCells
+  ) return -1;
+  return y * this.widthInCells + x;
+}
+
+EntityManager.prototype.addEntity = function(entity){
+  var index = getIndex.call(this, entity.x, entity.y);
+  this.cells[index].push(entity);
+  entity._cell = index;
+}
+
+EntityManager.prototype.updateEntity = function(entity){
+  var index = getIndex.call(this, entity.x, entity.y);
+  // If we moved to a new cell, remove from old and add to new
+  if(index != entity._cell) {
+    var cellIndex = this.cells[entity._cell].indexOf(entity);
+    if(cellIndex != -1) this.cells[entity._cell].splice(cellIndex, 1);
+    this.cells[index].push(entity);
+    entity._cell = index;
+  }
+}
+
+EntityManager.prototype.removeEntity = function(entity) {
+  var cellIndex = this.cells[entity._cell].indexOf(entity);
+  if(cellIndex != -1) this.cells[entity._cell].splice(cellIndex, 1);
+  entity._cell = undefined;
+}
+
+EntityManager.prototype.collide = function(callback) {
+  var self = this;
+  this.cells.forEach(function(cell, i) {
+    // test for collisions
+    cell.forEach(function(entity1) {
+      // check for collisions with cellmates
+        cell.forEach(function(entity2) {
+            if(entity1 != entity2) checkForCollision(entity1, entity2, callback);
+            // check for collisions in cell to the right
+            if(i % (self.widthInCells - 1) != 0) 
+            {
+                self.cells[i+1].forEach(function(entity2) 
+                {
+                    checkForCollision(entity1, entity2, callback);
+         	    });
+            }
+            // check for collisions in cell below
+            if(i < self.numberOfCells - self.widthInCells)
+            {
+                self.cells[i+self.widthInCells].forEach(function(entity2)
+                {
+                    checkForCollision(entity1, entity2, callback);
+                });
+            }
+            // check for collisions diagionally below and right
+            if(i < self.numberOfCells - self.withInCells && i % (self.widthInCells - 1) != 0) 
+            {
+                self.cells[i+self.widthInCells + 1].forEach(function(entity2)
+                {
+                    checkForCollision(entity1, entity2, callback);
+         	    });
+            }
+            });
+           
+      });   
+  });
+}
+
+function checkForCollision(entity1, entity2, callback) {
+  var collides = !(entity1.x + entity1.width < entity2.x ||
+                   entity1.x > entity2.x + entity2.width ||
+                   entity1.y + entity1.height < entity2.y ||
+                   entity1.y > entity2.y + entity2.height);
+  if(collides) {
+    callback(entity1, entity2);
+  }
+}
+
+EntityManager.prototype.renderCells = function(ctx) {
+  for(var x = 0; x < this.widthInCells; x++) {
+    for(var y = 0; y < this.heightInCells; y++) {
+      ctx.strokeStyle = '#333333';
+      ctx.strokeRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+    }
+  }
+}
+},{}],3:[function(require,module,exports){
 "use strict";9
 
 module.exports = exports = FastCar;
@@ -126,7 +288,7 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 /**
@@ -184,7 +346,44 @@ Game.prototype.loop = function(newTime) {
   this.frontCtx.drawImage(this.backBuffer, 0, 0);
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
+"use strict";9
+
+module.exports = exports = Lilypad;
+
+function Lilypad(position, flipped) {
+  this.x = position.x;
+  this.y = position.y;
+  this.width  = 64;
+  this.height = 64;
+  this.sprite  = new Image();
+  this.sprite.src = encodeURI('assets/lilypad.png')
+  this.flipped = flipped;
+}
+
+Lilypad.prototype.update = function(moveSpeed) {
+  if (this.flipped)
+  {
+    this.y += moveSpeed;
+    if (this.y > 600)
+    {
+    	this.y = -150;
+    }
+  }
+  else{
+    this.y -= moveSpeed;
+    if (this.y < -150)
+    {
+      this.y = 600;
+    }
+  }
+}
+
+Lilypad.prototype.render = function(ctx) {
+    ctx.drawImage(this.sprite, 0, 0, 228, 209, this.x, this.y, this.width, this.height);
+    ctx.strokeRect(this.x, this.y, this.width, this.height);
+}
+},{}],6:[function(require,module,exports){
 "use strict";9
 
 module.exports = exports = MiniCoop;
@@ -237,7 +436,7 @@ MiniCoop.prototype.render = function(ctx) {
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 const MS_PER_FRAME = 1000/8;
@@ -245,6 +444,12 @@ const MS_PER_FRAME = 1000/8;
  * @module exports the Player class
  */
 module.exports = exports = Player;
+var input = {
+	up:false,
+	down:false,
+	right:false
+}
+
 /**
  * @constructor Player
  * Creates a new player object
@@ -261,13 +466,15 @@ function Player(position) {
   this.timer = 0;
   this.frame = 0;
   this.hopping = false;
+  this.lily
 }
 
 /**
  * @function updates the player object
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
-Player.prototype.update = function(time) {
+Player.prototype.update = function(time, onLily) {
+  this.lily = onLily
   switch(this.state) {
     case "idle":
       this.timer += time;
@@ -276,13 +483,32 @@ Player.prototype.update = function(time) {
         this.frame += 1;
         if(this.frame > 3) this.frame = 0;
       }
+      if (input.up){
+        this.state = "hopUp";
+        this.hopping = true;
+        this.timer = 0;
+        this.frame = 0;
+      }
+      else if(input.down) {
+        this.state = "hopDown";
+        this.hopping = true;
+        this.timer = 0;
+        this.frame = 0;
+      }
+      else if (input.right)
+      {
+        this.state = "hopRight"
+        this.hopping = true;
+        this.timer = 0;
+        this.frame = 0;
+      }
       break;
     case "hopRight":
       this.timer += time;
       if(this.timer > MS_PER_FRAME) {
         this.timer = 0;
         this.frame += 1;
-        this.x += 12;
+        this.x += 16;
         if(this.frame > 3) {
           this.frame = 0;
           this.state = "idle";
@@ -295,7 +521,7 @@ Player.prototype.update = function(time) {
       if(this.timer > MS_PER_FRAME) {
         this.timer = 0;
         this.frame += 1;
-        this.y -= 12;
+        this.y -= 8;
         if(this.frame > 3) {
           this.frame = 0;
           this.state = "idle";
@@ -308,16 +534,16 @@ Player.prototype.update = function(time) {
       if(this.timer > MS_PER_FRAME) {
         this.timer = 0;
         this.frame += 1;
-        this.y += 12;
+        this.y += 8;
         if(this.frame > 3) {
           this.frame = 0;
           this.state = "idle";
           this.hopping = false;
         }
       }
-      break;
-    
+      break;    
   }
+  
 }
 
 /**
@@ -344,6 +570,7 @@ Player.prototype.render = function(time, ctx) {
         // destination rectangle
         this.x, this.y, this.width, this.height
       );
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
   }
 }
 
@@ -360,18 +587,15 @@ window.onkeydown = function(event)
 		{
 			 case 39:
        case 68:
-				this.state = "hopRight"
-        this.hopping = true;
+				input.right = true;
 				break;			
 			 case 38:
 			 case 87:
-				this.state = "hopUp";
-        this.hopping = true;
+        input.up = true;
 				break;
 			 case 40:
 			 case 83:
-				this.state = "hopDown";
-        this.hopping = true;
+				input.down = true;
 				break;
 		}
 	}
@@ -382,17 +606,17 @@ window.onkeyup = function(event)
 	event.preventDefault();
 	switch(event.keyCode)
 	{
-		case 32:
-			
+		case 39:
+    case 68:
+			input.right = false;
 			break;
 		 case 38:
 		 case 87:
-			
+			input.up = false;
 			break;
-
 		 case 40:
 		 case 83:
-			
+			input.down = false;
 			break;
 
 	}

@@ -5,6 +5,12 @@ const MS_PER_FRAME = 1000/8;
  * @module exports the Player class
  */
 module.exports = exports = Player;
+var input = {
+	up:false,
+	down:false,
+	right:false
+}
+
 /**
  * @constructor Player
  * Creates a new player object
@@ -21,13 +27,15 @@ function Player(position) {
   this.timer = 0;
   this.frame = 0;
   this.hopping = false;
+  this.lily
 }
 
 /**
  * @function updates the player object
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
-Player.prototype.update = function(time) {
+Player.prototype.update = function(time, onLily) {
+  this.lily = onLily
   switch(this.state) {
     case "idle":
       this.timer += time;
@@ -36,13 +44,32 @@ Player.prototype.update = function(time) {
         this.frame += 1;
         if(this.frame > 3) this.frame = 0;
       }
+      if (input.up){
+        this.state = "hopUp";
+        this.hopping = true;
+        this.timer = 0;
+        this.frame = 0;
+      }
+      else if(input.down) {
+        this.state = "hopDown";
+        this.hopping = true;
+        this.timer = 0;
+        this.frame = 0;
+      }
+      else if (input.right)
+      {
+        this.state = "hopRight"
+        this.hopping = true;
+        this.timer = 0;
+        this.frame = 0;
+      }
       break;
     case "hopRight":
       this.timer += time;
       if(this.timer > MS_PER_FRAME) {
         this.timer = 0;
         this.frame += 1;
-        this.x += 12;
+        this.x += 16;
         if(this.frame > 3) {
           this.frame = 0;
           this.state = "idle";
@@ -55,7 +82,7 @@ Player.prototype.update = function(time) {
       if(this.timer > MS_PER_FRAME) {
         this.timer = 0;
         this.frame += 1;
-        this.y -= 12;
+        this.y -= 8;
         if(this.frame > 3) {
           this.frame = 0;
           this.state = "idle";
@@ -68,16 +95,16 @@ Player.prototype.update = function(time) {
       if(this.timer > MS_PER_FRAME) {
         this.timer = 0;
         this.frame += 1;
-        this.y += 12;
+        this.y += 8;
         if(this.frame > 3) {
           this.frame = 0;
           this.state = "idle";
           this.hopping = false;
         }
       }
-      break;
-    
+      break;    
   }
+  
 }
 
 /**
@@ -104,6 +131,7 @@ Player.prototype.render = function(time, ctx) {
         // destination rectangle
         this.x, this.y, this.width, this.height
       );
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
   }
 }
 
@@ -120,18 +148,15 @@ window.onkeydown = function(event)
 		{
 			 case 39:
        case 68:
-				this.state = "hopRight"
-        this.hopping = true;
+				input.right = true;
 				break;			
 			 case 38:
 			 case 87:
-				this.state = "hopUp";
-        this.hopping = true;
+        input.up = true;
 				break;
 			 case 40:
 			 case 83:
-				this.state = "hopDown";
-        this.hopping = true;
+				input.down = true;
 				break;
 		}
 	}
@@ -142,17 +167,17 @@ window.onkeyup = function(event)
 	event.preventDefault();
 	switch(event.keyCode)
 	{
-		case 32:
-			
+		case 39:
+    case 68:
+			input.right = false;
 			break;
 		 case 38:
 		 case 87:
-			
+			input.up = false;
 			break;
-
 		 case 40:
 		 case 83:
-			
+			input.down = false;
 			break;
 
 	}
