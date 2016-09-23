@@ -76,7 +76,7 @@ Player.prototype.update = function(time) {
         }
       }
       break;
-    // TODO: Implement your player's update by state
+    
   }
 }
 
@@ -136,25 +136,24 @@ window.onkeydown = function(event)
 		}
 	}
 }
-/*
+
 window.onkeyup = function(event)
 {
 	event.preventDefault();
 	switch(event.keyCode)
 	{
 		case 32:
-			input.jump = false;
+			
 			break;
 		 case 38:
 		 case 87:
-			input.up = false;
+			
 			break;
 
 		 case 40:
 		 case 83:
-			input.down = false;
+			
 			break;
 
 	}
 }
-*/

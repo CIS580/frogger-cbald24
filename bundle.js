@@ -4,6 +4,8 @@
 /* Classes */
 const Game = require('./game.js');
 const Player = require('./player.js');
+const FastCar = require('./fastCar.js');
+const MiniCoop = require('./miniCoop.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
@@ -11,7 +13,12 @@ var game = new Game(canvas, update, render);
 var player = new Player({x: 0, y: 240})
 var background = new Image();
 background.src = "assets/Background.png"; 
-
+var carDown = new FastCar({x: (64 * 5) + 40, y: canvas.height}, true);
+var miniUp = new MiniCoop({x: (64 * 9)-4, y: canvas.height}, false);
+var carUp = new FastCar({x: (64 * 10) + 40, y: canvas.height}, false);
+var  miniDown = new MiniCoop({x: (64 * 4)+4, y: canvas.height}, true);
+var miniMoveSpeed = 2;
+var carMoveSpeed = 3;
 /**
  * @function masterLoop
  * Advances the game in sync with the refresh rate of the screen
@@ -34,6 +41,10 @@ masterLoop(performance.now());
  */
 function update(elapsedTime) {
   player.update(elapsedTime);
+  carDown.update(carMoveSpeed);
+  miniDown.update(miniMoveSpeed);
+  carUp.update(carMoveSpeed);
+  miniUp.update(miniMoveSpeed);
   // TODO: Update the game objects
 }
 
@@ -45,13 +56,77 @@ function update(elapsedTime) {
   * @param {CanvasRenderingContext2D} ctx the context to render to
   */
 function render(elapsedTime, ctx) {
-  ctx.drawImage(background,0,0);
-  //ctx.fillStyle = "lightblue";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "black";
+  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+  for (var i = 0; i < canvas.width; i+=16)
+  {
+    ctx.fillRect(i, 0, 2, canvas.height);
+  }
+  
   player.render(elapsedTime, ctx);
+  carUp.render(ctx);
+  miniUp.render(ctx);
+  miniDown.render(ctx);
+  carDown.render(ctx);
 }
 
-},{"./game.js":2,"./player.js":3}],2:[function(require,module,exports){
+},{"./fastCar.js":2,"./game.js":3,"./miniCoop.js":4,"./player.js":5}],2:[function(require,module,exports){
+"use strict";9
+
+module.exports = exports = FastCar;
+
+function FastCar(position, flipped) {
+  this.x = position.x;
+  this.y = position.y;
+  this.width  = 64;
+  this.height = 128;
+  this.spritesheet  = new Image();
+  if (flipped)
+  {
+    this.spritesheet.src = encodeURI('assets/cars_racer_flipped.png');
+  }
+  else
+  {
+    this.spritesheet.src = encodeURI('assets/cars_racer.svg');
+  }
+  this.flipped = flipped;
+  this.spriteColor = getRandomInt(0 , 3);
+}
+
+FastCar.prototype.update = function(moveSpeed) {
+  if (this.flipped)
+  {
+    this.y += moveSpeed;
+    if (this.y > 600)
+    {
+    	this.y = -150;
+      this.spriteColor = getRandomInt(0 , 3);
+    }
+  }
+  else{
+    this.y -= moveSpeed;
+    if (this.y < -150)
+    {
+      this.y = 600;
+      this.spriteColor = getRandomInt(0 , 3);
+    }
+  }
+}
+
+FastCar.prototype.render = function(ctx) {
+    ctx.drawImage(
+		this.spritesheet,
+		(this.spriteColor)*390 , 0, 220, 450,
+		this.x, this.y, this.width, this.height
+	);
+  ctx.strokeRect(this.x, this.y, this.width, this.height);
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+},{}],3:[function(require,module,exports){
 "use strict";
 
 /**
@@ -109,7 +184,60 @@ Game.prototype.loop = function(newTime) {
   this.frontCtx.drawImage(this.backBuffer, 0, 0);
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+"use strict";9
+
+module.exports = exports = MiniCoop;
+
+function MiniCoop(position, flipped) {
+  this.x = position.x;
+  this.y = position.y;
+  this.width  = 64;
+  this.height = 96;
+  this.spritesheet  = new Image();
+  if (flipped)
+  {
+    this.spritesheet.src = encodeURI('assets/cars_mini_flipped.png');
+  }
+  else
+  {
+    this.spritesheet.src = encodeURI('assets/cars_mini.svg');
+  }
+  this.flipped = flipped;
+  this.spriteColor = getRandomInt(0 , 4);
+}
+
+MiniCoop.prototype.update = function(moveSpeed) {
+  if (this.flipped)
+  {
+    this.y += moveSpeed;
+    if (this.y > 600)
+    {
+    	this.y = -150;
+      this.spriteColor = getRandomInt(0 , 4);
+    }
+  }
+  else{
+    this.y -= moveSpeed;
+    if (this.y < -150)
+    {
+      this.y = 600;
+      this.spriteColor = getRandomInt(0 , 4);
+    }
+  }
+}
+
+MiniCoop.prototype.render = function(ctx) {
+    ctx.drawImage(
+		this.spritesheet, (this.spriteColor)*247, 0, 199, 339, this.x, this.y, this.width, this.height
+	);
+  ctx.strokeRect(this.x, this.y, this.width, this.height);
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+},{}],5:[function(require,module,exports){
 "use strict";
 
 const MS_PER_FRAME = 1000/8;
@@ -188,7 +316,7 @@ Player.prototype.update = function(time) {
         }
       }
       break;
-    // TODO: Implement your player's update by state
+    
   }
 }
 
@@ -248,26 +376,26 @@ window.onkeydown = function(event)
 		}
 	}
 }
-/*
+
 window.onkeyup = function(event)
 {
 	event.preventDefault();
 	switch(event.keyCode)
 	{
 		case 32:
-			input.jump = false;
+			
 			break;
 		 case 38:
 		 case 87:
-			input.up = false;
+			
 			break;
 
 		 case 40:
 		 case 83:
-			input.down = false;
+			
 			break;
 
 	}
 }
-*/
+
 },{}]},{},[1]);

@@ -1,33 +1,33 @@
 "use strict";9
 
-module.exports = exports = FastCar;
+module.exports = exports = MiniCoop;
 
-function FastCar(position, flipped) {
+function MiniCoop(position, flipped) {
   this.x = position.x;
   this.y = position.y;
   this.width  = 64;
-  this.height = 128;
+  this.height = 96;
   this.spritesheet  = new Image();
   if (flipped)
   {
-    this.spritesheet.src = encodeURI('assets/cars_racer_flipped.png');
+    this.spritesheet.src = encodeURI('assets/cars_mini_flipped.png');
   }
   else
   {
-    this.spritesheet.src = encodeURI('assets/cars_racer.svg');
+    this.spritesheet.src = encodeURI('assets/cars_mini.svg');
   }
   this.flipped = flipped;
-  this.spriteColor = getRandomInt(0 , 3);
+  this.spriteColor = getRandomInt(0 , 4);
 }
 
-FastCar.prototype.update = function(moveSpeed) {
+MiniCoop.prototype.update = function(moveSpeed) {
   if (this.flipped)
   {
     this.y += moveSpeed;
     if (this.y > 600)
     {
     	this.y = -150;
-      this.spriteColor = getRandomInt(0 , 3);
+      this.spriteColor = getRandomInt(0 , 4);
     }
   }
   else{
@@ -35,16 +35,14 @@ FastCar.prototype.update = function(moveSpeed) {
     if (this.y < -150)
     {
       this.y = 600;
-      this.spriteColor = getRandomInt(0 , 3);
+      this.spriteColor = getRandomInt(0 , 4);
     }
   }
 }
 
-FastCar.prototype.render = function(ctx) {
+MiniCoop.prototype.render = function(ctx) {
     ctx.drawImage(
-		this.spritesheet,
-		(this.spriteColor)*390 , 0, 220, 450,
-		this.x, this.y, this.width, this.height
+		this.spritesheet, (this.spriteColor)*247, 0, 199, 339, this.x, this.y, this.width, this.height
 	);
   ctx.strokeRect(this.x, this.y, this.width, this.height);
 }
