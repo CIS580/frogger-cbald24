@@ -109,10 +109,7 @@ function render(elapsedTime, ctx) {
   ctx.fillText("SCORE: " +score, 7, canvas.height - 20);
   ctx.fillText("LEVEL: " +level, 7, canvas.height - 40);
 	ctx.fillText("LIVES: " +lives, 7, canvas.height -60);
-  for (var i = 0; i < canvas.width; i+=16)
-  {
-    ctx.fillRect(i, 0, 2, canvas.height);
-  }
+
   
   player.render(elapsedTime, ctx);
   carUp.render(ctx);
@@ -281,7 +278,7 @@ FastCar.prototype.render = function(ctx) {
 		(this.spriteColor)*390 , 0, 220, 450,
 		this.x, this.y, this.width, this.height
 	);
-  ctx.strokeRect(this.x, this.y, this.width, this.height);
+  //ctx.strokeRect(this.x, this.y, this.width, this.height);
 }
 
 function getRandomInt(min, max) {
@@ -381,7 +378,7 @@ Lilypad.prototype.update = function(moveSpeed) {
 
 Lilypad.prototype.render = function(ctx) {
     ctx.drawImage(this.sprite, 0, 0, 228, 209, this.x, this.y, this.width, this.height);
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    //ctx.strokeRect(this.x, this.y, this.width, this.height);
 }
 },{}],6:[function(require,module,exports){
 "use strict";9
@@ -430,7 +427,7 @@ MiniCoop.prototype.render = function(ctx) {
     ctx.drawImage(
 		this.spritesheet, (this.spriteColor)*247, 0, 199, 339, this.x, this.y, this.width, this.height
 	);
-  ctx.strokeRect(this.x, this.y, this.width, this.height);
+  //ctx.strokeRect(this.x, this.y, this.width, this.height);
 }
 
 function getRandomInt(min, max) {
@@ -570,7 +567,7 @@ Player.prototype.render = function(time, ctx) {
         // destination rectangle
         this.x, this.y, this.width, this.height
       );
-      ctx.strokeRect(this.x, this.y, this.width, this.height);
+      //ctx.strokeRect(this.x, this.y, this.width, this.height);
   }
 }
 

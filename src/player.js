@@ -131,7 +131,7 @@ Player.prototype.render = function(time, ctx) {
         // destination rectangle
         this.x, this.y, this.width, this.height
       );
-      ctx.strokeRect(this.x, this.y, this.width, this.height);
+      //ctx.strokeRect(this.x, this.y, this.width, this.height);
   }
 }
 

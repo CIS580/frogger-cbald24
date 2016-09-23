@@ -108,10 +108,7 @@ function render(elapsedTime, ctx) {
   ctx.fillText("SCORE: " +score, 7, canvas.height - 20);
   ctx.fillText("LEVEL: " +level, 7, canvas.height - 40);
 	ctx.fillText("LIVES: " +lives, 7, canvas.height -60);
-  for (var i = 0; i < canvas.width; i+=16)
-  {
-    ctx.fillRect(i, 0, 2, canvas.height);
-  }
+
   
   player.render(elapsedTime, ctx);
   carUp.render(ctx);

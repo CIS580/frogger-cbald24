@@ -32,5 +32,5 @@ Lilypad.prototype.update = function(moveSpeed) {
 
 Lilypad.prototype.render = function(ctx) {
     ctx.drawImage(this.sprite, 0, 0, 228, 209, this.x, this.y, this.width, this.height);
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    //ctx.strokeRect(this.x, this.y, this.width, this.height);
 }

@@ -44,7 +44,7 @@ MiniCoop.prototype.render = function(ctx) {
     ctx.drawImage(
 		this.spritesheet, (this.spriteColor)*247, 0, 199, 339, this.x, this.y, this.width, this.height
 	);
-  ctx.strokeRect(this.x, this.y, this.width, this.height);
+  //ctx.strokeRect(this.x, this.y, this.width, this.height);
 }
 
 function getRandomInt(min, max) {
